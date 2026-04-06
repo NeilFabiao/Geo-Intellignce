@@ -215,24 +215,97 @@ st_folium(m, width=700, height=500)
 # ------------------------------
 # 1️⃣2️⃣ Plots
 # ------------------------------
-st.subheader("🌧 Rainfall & Temperature")
 
-fig, ax1 = plt.subplots(figsize=(12, 5))
-ax1.bar(df["date"], df["rainfall_mm"])
+# ==============================
+# 📊 1. Combined Line Plot
+# ==============================
+st.subheader("📊 Daily Weather Overview")
 
-ax2 = ax1.twinx()
-ax2.plot(df["date"], df["temperature_max"], marker="o")
-ax2.plot(df["date"], df["temperature_min"], marker="x")
+fig = plt.figure(figsize=(12,6))
+plt.plot(df['date'], df['rainfall_mm'], label='Rainfall (mm)', marker='o')
+plt.plot(df['date'], df['temperature_max'], label='Max Temp (°C)', marker='x')
+plt.plot(df['date'], df['temperature_min'], label='Min Temp (°C)', marker='x')
+
+plt.title(f"Daily Weather – {nearest_place}")
+plt.xlabel("Date")
+plt.ylabel("Rainfall / Temperature")
+plt.xticks(rotation=45)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
 
 st.pyplot(fig)
 
-# Revenue
+
+# ==============================
+# 🌧 2. Rainfall Bar Chart
+# ==============================
+st.subheader("🌧 Rainfall Only")
+
+fig = plt.figure(figsize=(12,5))
+plt.bar(df['date'], df['rainfall_mm'])
+
+plt.title(f"Rainfall – {nearest_place}")
+plt.xlabel("Date")
+plt.ylabel("Rainfall (mm)")
+plt.xticks(rotation=45)
+
+st.pyplot(fig)
+
+
+# ==============================
+# 🌡 3. Temperature Categories
+# ==============================
+st.subheader("🌡 Max Temperature by Category")
+
+colors = {0:'blue', 1:'green', 2:'red'}
+labels = {
+    0:'Cold (<20°C)',
+    1:'Moderate (20-30°C)',
+    2:'Hot (>30°C)'
+}
+
+fig = plt.figure(figsize=(12,6))
+
+for t in df['temp_category'].unique():
+    subset = df[df['temp_category'] == t]
+    plt.scatter(
+        subset['date'],
+        subset['temperature_max'],
+        color=colors[t],
+        label=labels[t],
+        s=80
+    )
+
+plt.title("Max Temperature by Category")
+plt.xlabel("Date")
+plt.ylabel("Max Temp (°C)")
+plt.xticks(rotation=45)
+plt.legend(title="Temperature Categories")
+plt.grid(True)
+
+st.pyplot(fig)
+
+
+# ==============================
+# 💰 4. Rainfall vs Revenue
+# ==============================
 st.subheader("💰 Rainfall vs Revenue")
 
-fig, ax1 = plt.subplots(figsize=(12, 5))
-ax1.bar(df["date"], df["rainfall_mm"])
+fig, ax1 = plt.subplots(figsize=(12,5))
 
+# Rainfall
+ax1.bar(df['date'], df['rainfall_mm'])
+ax1.set_xlabel("Date")
+ax1.set_ylabel("Rainfall (mm)")
+plt.setp(ax1.get_xticklabels(), rotation=45, ha='right')
+
+# Revenue
 ax2 = ax1.twinx()
-ax2.plot(df["date"], df["synthetic_revenue"], marker="o")
+ax2.plot(df['date'], df['synthetic_revenue'], marker='o')
+ax2.set_ylabel("Revenue")
+
+# Title
+fig.suptitle(f"Rainfall vs Revenue – {nearest_place}")
 
 st.pyplot(fig)
