@@ -3,11 +3,15 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import requests
+import geopy
+import shapely
+import json
+import matplotlib.pyplot as plt
+
 from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 from shapely.geometry import shape, Point
-import json
-import matplotlib.pyplot as plt
+
 
 # ------------------------------
 # 1️⃣ Page setup
