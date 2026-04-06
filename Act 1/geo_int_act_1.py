@@ -1,6 +1,6 @@
 import streamlit as st
 import requests  # replaced requests_cache if not installed
-from retry_requests import retry
+#from retry_requests import retry
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
