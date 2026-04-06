@@ -1,17 +1,16 @@
 import streamlit as st
-import openmeteo_requests
+import requests
 import requests_cache
 from retry_requests import retry
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import random
-import json
-import urllib.request
 from shapely.geometry import shape, Point
 from geopy.geocoders import Nominatim
 from datetime import date, timedelta
+import random
+import json
+import urllib.request
 
 # ─── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -56,10 +55,7 @@ def reverse_geocode(lat, lon):
 
 @st.cache_data(show_spinner=False)
 def fetch_weather(lat, lon):
-    cache_session = requests_cache.CachedSession(".cache", expire_after=86400)
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    openmeteo = openmeteo_requests.Client(session=retry_session)
-
+    """Fetch last 30 days of daily weather data from Open-Meteo API."""
     end_date = date.today() - timedelta(days=1)
     start_date = end_date - timedelta(days=30)
 
@@ -73,22 +69,19 @@ def fetch_weather(lat, lon):
         "timezone": "UTC",
     }
 
-    responses = openmeteo.weather_api(url, params=params)
-    response = responses[0]
-    daily = response.Daily()
-    rainfall_mm = daily.Variables(0).ValuesAsNumpy()
-    temperature_max = daily.Variables(1).ValuesAsNumpy()
-    temperature_min = daily.Variables(2).ValuesAsNumpy()
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
 
-    dates = pd.date_range(
-        start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-        periods=len(rainfall_mm),
-        freq="D",
-    ).date
+    daily = data["daily"]
+    dates = pd.to_datetime(daily["time"])
+    rainfall_mm = daily["precipitation_sum"]
+    temperature_max = daily["temperature_2m_max"]
+    temperature_min = daily["temperature_2m_min"]
 
     df = pd.DataFrame({
-        "latitude": response.Latitude(),
-        "longitude": response.Longitude(),
+        "latitude": lat,
+        "longitude": lon,
         "date": dates,
         "rainfall_mm": rainfall_mm,
         "temperature_2m_max": temperature_max,
@@ -130,7 +123,6 @@ def generate_revenue(df, seed=42):
     df = df.copy()
     df["synthetic_revenue"] = df.apply(calc, axis=1)
     return df
-
 
 # ─── Session State ─────────────────────────────────────────────────────────────
 if "mozambique" not in st.session_state:
@@ -245,13 +237,11 @@ with st.expander("📋 View raw data table"):
     )
 
 # ─── Chart helpers ───────────────────────────────────────────────────────────────
-
 dates_plot = [pd.Timestamp(d) for d in df["date"]]
 
 def make_fig(figsize=(10, 4)):
     fig, ax = plt.subplots(figsize=figsize)
     return fig, ax
-
 
 # ── Chart 1 – Rainfall + Temperature ──
 st.divider()
