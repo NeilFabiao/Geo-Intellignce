@@ -496,7 +496,8 @@ fig4.tight_layout()
 st.pyplot(fig4)
 
 st.divider()
-st.caption("Data source: [Open-Meteo Archive API](https://open-meteo.com/) · Geography: [datasets/geo-countries](https://github.com/datasets/geo-countries)")BBOX = {"lat": (-26.9, -10.3), "lon": (30.2, 40.8)}
+st.caption("Data source: [Open-Meteo Archive API](https://open-meteo.com/) · Geography: [datasets/geo-countries](https://github.com/datasets/geo-countries)")
+BBOX = {"lat": (-26.9, -10.3), "lon": (30.2, 40.8)}
 
 
 def get_random_location_mozambique(mozambique_shape):
