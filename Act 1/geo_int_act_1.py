@@ -1,40 +1,105 @@
+# geo_int_act_1.py
 import streamlit as st
-import random
-import json
-import urllib.request
-from shapely.geometry import shape, Point
+import pandas as pd
+import numpy as np
+import requests
+from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
+from shapely.geometry import shape, Point
+import json
+import matplotlib.pyplot as plt
 
-# ─── Page Config ───────────────────────────────────────────────────────────────
+# ------------------------------
+# 1️⃣ Page setup
+# ------------------------------
 st.set_page_config(
-    page_title="🌍 Geo Intelligence – Mozambique Weather",
-    page_icon="🌍",
+    page_title="Geo-Intelligence Weather Dashboard",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
-BBOX = {"lat": (-26.9, -10.3), "lon": (30.2, 40.8)}  # Mozambique bounding box
+st.title("🌦 Geo-Intelligence Weather Dashboard")
 
-@st.cache_data(show_spinner=False)
-def load_mozambique():
-    """Load Mozambique polygon from GeoJSON."""
-    url = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
-    with urllib.request.urlopen(url) as r:
-        data = json.loads(r.read())
-    for feature in data["features"]:
-        props = feature.get("properties", {})
-        if props.get("ISO3166-1-Alpha-3") == "MOZ":
-            return shape(feature["geometry"])
-    raise ValueError("Mozambique not found in GeoJSON")
+# ------------------------------
+# 2️⃣ Sidebar inputs
+# ------------------------------
+st.sidebar.header("Settings")
 
-def get_random_location_mozambique(mozambique_shape):
-    """Return a random (lat, lon) strictly inside Mozambique."""
-    while True:
-        lat = random.uniform(*BBOX["lat"])
-        lon = random.uniform(*BBOX["lon"])
-        if mozambique_shape.contains(Point(lon, lat)):
-            return round(lat, 6), round(lon, 6)
+# Example bounding box: Mozambique (lat/lon)
+BBOX = {"lat": (-26.9, -10.3), "lon": (30.2, 40.0)}
 
+latitude = st.sidebar.slider("Latitude", float(BBOX["lat"][0]), float(BBOX["lat"][1]),  -25.0)
+longitude = st.sidebar.slider("Longitude", float(BBOX["lon"][0]), float(BBOX["lon"][1]),  35.0)
+days_back = st.sidebar.slider("Days back for historical data", 1, 7, 3)
+
+# ------------------------------
+# 3️⃣ Reverse geocoding
+# ------------------------------
+geolocator = Nominatim(user_agent="geo_intel_app")
+location = geolocator.reverse((latitude, longitude), exactly_one=True)
+nearest_place = location.address if location else "Unknown location"
+st.subheader(f"📍 Selected Location: {nearest_place}")
+
+# ------------------------------
+# 4️⃣ Fetch weather data (placeholder)
+# ------------------------------
+st.subheader("🌧 Weather Data")
+
+# Example: Mock data (replace with Open-Meteo API call if needed)
+dates = [datetime.today() - timedelta(days=i) for i in range(days_back)]
+dates.reverse()
+rain_mm = np.random.randint(0, 30, size=days_back)
+temperature = np.random.randint(20, 35, size=days_back)
+
+weather_df = pd.DataFrame({
+    "date": dates,
+    "rain_mm": rain_mm,
+    "temperature_C": temperature
+})
+
+st.dataframe(weather_df)
+
+# ------------------------------
+# 5️⃣ Plotting
+# ------------------------------
+fig, ax1 = plt.subplots(figsize=(10, 5))
+
+ax1.bar(weather_df["date"], weather_df["rain_mm"], color='skyblue', label="Rain (mm)")
+ax1.set_ylabel("Rain (mm)", color='blue')
+ax1.tick_params(axis='y', labelcolor='blue')
+
+ax2 = ax1.twinx()
+ax2.plot(weather_df["date"], weather_df["temperature_C"], color='red', marker='o', label="Temp (°C)")
+ax2.set_ylabel("Temperature (°C)", color='red')
+ax2.tick_params(axis='y', labelcolor='red')
+
+fig.autofmt_xdate()
+plt.title(f"Daily Weather – {nearest_place}")
+ax1.legend(loc="upper left")
+ax2.legend(loc="upper right")
+
+st.pyplot(fig)
+
+# ------------------------------
+# 6️⃣ Shapely Example: Point in Bounding Box
+# ------------------------------
+st.subheader("📌 Point in Bounding Box Check")
+point = Point(longitude, latitude)
+bbox_polygon = shape({
+    "type": "Polygon",
+    "coordinates": [[
+        [BBOX["lon"][0], BBOX["lat"][0]],
+        [BBOX["lon"][1], BBOX["lat"][0]],
+        [BBOX["lon"][1], BBOX["lat"][1]],
+        [BBOX["lon"][0], BBOX["lat"][1]],
+        [BBOX["lon"][0], BBOX["lat"][0]]
+    ]]
+})
+
+if bbox_polygon.contains(point):
+    st.success("✅ Point is inside the bounding box.")
+else:
+    st.error("❌ Point is outside the bounding box.")
 @st.cache_data(show_spinner=False)
 def reverse_geocode(lat, lon):
     geolocator = Nominatim(user_agent="geo_intelligence_app")
