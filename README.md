@@ -35,5 +35,5 @@ Comming Soon 😉
 * Repo owner Neil Fabião -> @neilfabiao ✌🏾
 
 ### Note ###
-This project was created for research purposes 🥲. Please ensure to comply with guidelines and the terms of use for APIs and rights.
+This project was created for research purposes 🥲. Please ensure to comply with guidelines and the terms of use for APIs, privacy and rights.
 ![](https://komarev.com/ghpvc/?username=neilGeoIngelinence2026&color=blue)
