@@ -190,9 +190,6 @@ def generate_revenue(row):
     revenue *= np.random.uniform(0.9, 1.1)
     return round(revenue, 2)
 
-df['synthetic_revenue'] = df.apply(generate_revenue, axis=1)
-st.dataframe(df)
-
 # ------------------------------
 # 11️⃣ Show Map
 # ------------------------------
@@ -219,6 +216,9 @@ moz_coords = mapping(mozambique)["coordinates"][0]
 folium.PolyLine(locations=[(lat, lon) for lon, lat in moz_coords], color="blue", weight=2).add_to(m)
 
 st_folium(m, width=700, height=500)
+
+df['synthetic_revenue'] = df.apply(generate_revenue, axis=1)
+st.dataframe(df)
 
 # ------------------------------
 # 12️⃣ Plots
