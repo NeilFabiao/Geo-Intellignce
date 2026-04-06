@@ -1,4 +1,5 @@
 # Main packages
+pip
 streamlit
 pandas
 numpy
