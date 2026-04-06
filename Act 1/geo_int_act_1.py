@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import requests_cache
 from tenacity import retry, stop_after_attempt, wait_fixed
 from geopy.geocoders import Nominatim
-from shapely.geometry import shape, Point, mapping
+from shapely.geometry import shape, Point, mapping, Polygon
 import json
 import random
 import folium
@@ -41,7 +41,6 @@ for key in ["mozambique", "lat", "lon", "nearest_place"]:
 def load_mozambique():
     with open("mozambique.geojson", "r", encoding="utf-8") as f:
         gj = json.load(f)
-    # Take first feature if FeatureCollection
     if "features" in gj:
         return shape(gj["features"][0]["geometry"])
     else:
@@ -49,7 +48,17 @@ def load_mozambique():
 
 if st.session_state.mozambique is None:
     st.session_state.mozambique = load_mozambique()
-mozambique = st.session_state.mozambique
+mozambique: Polygon = st.session_state.mozambique
+
+# ------------------------------
+# 4.1️⃣ Random point inside polygon
+# ------------------------------
+def random_point_in_polygon(polygon: Polygon):
+    minx, miny, maxx, maxy = polygon.bounds
+    while True:
+        p = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
+        if polygon.contains(p):
+            return p
 
 # ------------------------------
 # 5️⃣ Sidebar Controls
@@ -58,9 +67,9 @@ st.sidebar.header("⚙️ Controls")
 
 # Random location
 if st.sidebar.button("🎲 Pick a random location in Mozambique"):
-    minx, miny, maxx, maxy = mozambique.bounds
-    st.session_state.lat = round(random.uniform(miny, maxy), 6)
-    st.session_state.lon = round(random.uniform(minx, maxx), 6)
+    p = random_point_in_polygon(mozambique)
+    st.session_state.lat = round(p.y, 6)
+    st.session_state.lon = round(p.x, 6)
     st.session_state.nearest_place = None
 
 # Manual coordinates
@@ -86,6 +95,11 @@ if st.session_state.lat is None or st.session_state.lon is None:
 
 lat = st.session_state.lat
 lon = st.session_state.lon
+
+# Validate numbers
+if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+    st.error("Latitude or longitude not set correctly. Please pick a location.")
+    st.stop()
 
 # ------------------------------
 # 7️⃣ Reverse Geocoding
@@ -187,14 +201,21 @@ st.subheader("🗺 Location Map")
 m = folium.Map(location=[lat, lon], zoom_start=6)
 folium.Marker(
     location=[lat, lon],
-    popup=f"Selected Location\n{nearest_place}",
+    popup=f"Selected Location:\n{nearest_place}",
     tooltip="Click for details",
     icon=folium.Icon(color="red", icon="info-sign")
 ).add_to(m)
 
+folium.Marker(
+    location=[lat, lon],
+    popup=f"<b>Selected Location:</b><br>{nearest_place}",
+    tooltip="Click for details",
+    icon=folium.Icon(color="red", icon="info-sign"),
+    parse_html=True
+).add_to(m)
+
 # Mozambique polygon from GeoJSON
 moz_coords = mapping(mozambique)["coordinates"][0]
-# folium expects [lat, lon]
 folium.PolyLine(locations=[(lat, lon) for lon, lat in moz_coords], color="blue", weight=2).add_to(m)
 
 st_folium(m, width=700, height=500)
