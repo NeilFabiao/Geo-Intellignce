@@ -219,7 +219,9 @@ st.divider()
 st.caption(
     "Data source: [Open-Meteo Archive API](https://open-meteo.com/) · "
     "Geography: [datasets/geo-countries](https://github.com/datasets/geo-countries)"
-)def get_random_location_mozambique(mozambique_shape):
+)
+
+def get_random_location_mozambique(mozambique_shape):
     """Return a random (lat, lon) strictly inside Mozambique."""
     while True:
         lat = random.uniform(*BBOX["lat"])
