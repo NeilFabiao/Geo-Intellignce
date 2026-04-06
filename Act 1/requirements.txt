@@ -1,0 +1,11 @@
+# Main packages
+streamlit
+pandas
+numpy
+matplotlib
+folium
+streamlit-folium
+geopy
+shapely
+requests-cache
+tenacity
