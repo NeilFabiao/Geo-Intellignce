@@ -288,24 +288,35 @@ st.pyplot(fig)
 
 
 # ==============================
-# 💰 4. Rainfall vs Revenue
+# 💰 Rainfall vs Revenue
 # ==============================
 st.subheader("💰 Rainfall vs Revenue")
 
 fig, ax1 = plt.subplots(figsize=(12,5))
 
-# Rainfall
-ax1.bar(df['date'], df['rainfall_mm'])
+# Rainfall (bars)
+ax1.bar(df['date'], df['rainfall_mm'], label='Rainfall (mm)')
 ax1.set_xlabel("Date")
 ax1.set_ylabel("Rainfall (mm)")
 plt.setp(ax1.get_xticklabels(), rotation=45, ha='right')
 
-# Revenue
+# Revenue (RED line ✅)
 ax2 = ax1.twinx()
-ax2.plot(df['date'], df['synthetic_revenue'], marker='o')
-ax2.set_ylabel("Revenue")
+ax2.plot(
+    df['date'],
+    df['synthetic_revenue'],
+    color='red',           # 🔥 THIS is what you want
+    marker='o',
+    label='Revenue'
+)
+ax2.set_ylabel("Revenue", color='red')
+ax2.tick_params(axis='y', labelcolor='red')
 
-# Title
+# Combined legend
+lines_1, labels_1 = ax1.get_legend_handles_labels()
+lines_2, labels_2 = ax2.get_legend_handles_labels()
+ax2.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
+
 fig.suptitle(f"Rainfall vs Revenue – {nearest_place}")
 
 st.pyplot(fig)
