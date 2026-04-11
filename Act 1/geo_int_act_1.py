@@ -21,11 +21,11 @@ from streamlit_folium import st_folium
 # 2️⃣ Streamlit Page Setup
 # ------------------------------
 st.set_page_config(
-    page_title="🌦 Geo-Intelligence Weather Dashboard",
+    page_title="🌦 Geo-Intelligence Dashboard",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.title("🌦 Geo-Intelligence Weather Dashboard")
+st.title("🌦 Geo-Intelligence Dashboard")
 
 # ------------------------------
 # 3️⃣ Session State Defaults
